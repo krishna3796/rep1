@@ -1,0 +1,228 @@
+22/6/2017   BIGDATA WITH HADOOP
+----------Exercises------------
+
+
+Exercise 1:
+Begin
+	int num1,num2,quotient;
+	
+	display"Enter 1st number"
+	accept num1;
+
+	display"Enter 2nd number"
+	accept num2;
+
+	quotient=num1/num2;
+	display quotient;	
+end
+---------------------------------
+Exercise 2:
+Begin
+	int kilometers,meters,result;
+	display"Enter distance in kilometers"
+	accept kilometers;
+	meters=kilometers*1000;
+	display"meters";
+end
+----------------------------------
+Exercise 3:
+Begin
+	String name;
+	String appendtext="Hello";
+	
+	display"Enter a name";
+	accept name;
+	name=appendtext+name;
+	display name;
+end
+----------------------------------
+Exercise 4:
+Begin
+	int num1,num2,num3,num4,num5,sum,average;
+	
+	display"Enter number 1";
+	accept num1;
+	
+	display"Enter number 2";
+	accept num2;
+
+	display"Enter number 3";
+	accept num3;
+
+	display"Enter number 4";
+	accept num4;
+
+	display"Enter number 5";
+	accept num5;
+	
+	total=num1+num2+num3+num4+num5;
+	display total;
+
+	average=total/5;
+	display average;
+
+end
+------------------------------------
+
+Exercise 5:
+
+Begin
+	int itemNumber,quantity,totalPrice;
+	int priceOfItem1=10;
+	int priceOfItem2=20;
+	int priceOfItem3=30;
+
+	display"Enter itemnumber";
+	accept itemNumber;
+
+	display"Enter Quantity";
+	accept quantity;
+	
+	if(itemNumber==1)
+	begin
+		totalprice=priceOfItem1*quantity;
+	end
+
+	if(itemNumber==2)
+	begin
+		totalprice=priceOfItem2*quantity;
+	end
+	
+	 if(itemNumber==3)
+	begin
+		totalprice=priceOfItem3*quantity;
+	end
+
+	display totalprice;
+end
+-------------------------------------
+
+Exercise 6:
+
+begin
+	int num1;
+	
+	display"Enter a number";
+	accept num1;
+
+	if(num1%5==0)
+	begin
+		display"the value is divisible by 5";
+	else
+		display"the value is not divisible by 5"
+	end
+end
+---------------------------------------
+
+Exercise 7:
+
+Begin
+	int num1,num2,num3;
+
+	display"Enter number 1";
+	accept num1;
+
+	display"Enter number 2";
+	accept num2;
+
+	display"Enter number 3";
+	accept num3;
+
+	if(num1>num2||num1>num3)
+	begin
+		display num1+"is the largest number"
+	end
+
+	if(num2>num1||num2>num3)
+	begin
+		display num2+"is the largest number"
+	end
+	
+	if(num3>num1||num3>num2)
+	begin
+		display num3+"is the largest number"
+	end
+
+end
+---------------------------------------
+Exercise 8:
+
+begin
+	int age;
+	display"Enter age"
+	accept age;
+
+	if(age>=18)
+	begin
+		display"Eligible to vote";
+	else
+		display"Not eligible to vote";
+	end
+
+end
+------------------------------------------
+Exercise 9:
+
+begin
+	int year;
+	display"Enter year";
+	accept year;
+	if(year%4==0)
+	if(year%100==0)
+		if(year%400==0)
+			display"year is leap year";
+	else
+		display"THE YEAR IS NOT LEAP YEAR"
+
+end
+--------------------------------------------
+Exercise 10:
+
+begin
+	int foodnumber;
+	display"1.food-A 2.food-B 3.food-C 4.food-D 5.food-E";
+	switch(foodnumber)
+	begin
+	case 1:{"you have selected food-A cost is 100" break;};
+	case 2:{"you have selected food-B cost is 200" break;};
+	case 3:{"you have selected food-C cost is 300" break;};
+	case 4:{"you have selected food-D cost is 400" break;};
+	case 4:{"you have selected food-E cost is 500" break;};
+	case default:{"Wrong selection"};
+	end
+
+end
+---------------------------------------------
+Exercise 11:
+
+begin
+	display"1.movie-A, 2.movie-B";
+	int movienumber;
+	switch(movienumber)
+	begin
+	case 1:{"movie name:A actors:abcd name of director:asdf" break;};
+	case 2:{"movie name:B actors:cdab name of director:lkjh" break;};
+	case default:{"Enter valid option"};
+	end
+
+end
+-----------------------------------------------
+Exercise 12:
+
+begin
+	String direction;
+	display"Enter direction";
+	accept direction;
+
+	switch(direction)
+	begin
+	case "up":{"North" break;};
+	case "down":{"South" break;};
+	case "right":{"East" break;};
+	case "left":{"West" break;};
+	
+	case default:"Enter valid direction";
+	end
+
+end
+------------------------------------------------
