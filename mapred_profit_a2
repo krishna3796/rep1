@@ -1,0 +1,71 @@
+import java.io.IOException;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+//import org.apache.hadoop.io.IntWritable;
+//import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+
+
+public class GrossProfit {
+public static class mapperclass extends Mapper<LongWritable,Text,Text,Text>
+{
+	public void map(LongWritable key,Text val,Context context) throws IOException, InterruptedException
+	{
+		try{
+		String str[]=val.toString().split(";");
+		//String outval=str[7]+","+str[8];
+		//long outkey=Long.parseLong(str[5]);
+		Integer profit=Integer.parseInt(str[8])-Integer.parseInt(str[7]);
+		String outval=str[4]+" "+profit;
+		context.write(new Text(str[5]),new Text(outval));}
+		catch(Exception e)
+		{
+			System.out.println(e);
+		}
+	}
+}
+public static class reduceclass extends Reducer<Text,Text,Text,Text>
+{
+	public void reduce(Text key,Iterable<Text> val,Context context) throws IOException, InterruptedException
+	{
+		Text v=null;
+		for(Text i:val)
+		{
+			v=i;
+		}
+//		Integer profit=0;
+//		String[] arr=val.toString().split(",");
+//		for(String i:arr){
+//		profit=Integer.parseInt(arr[1])-Integer.parseInt(arr[0]);
+//		}
+//		String p=profit.toString();
+		context.write(key,new Text(v));
+	}
+}
+public static void main(String[] args) throws Exception {
+    Configuration conf = new Configuration();
+    //conf.set("name", "value")
+    //conf.set("mapreduce.input.fileinputformat.split.minsize", "134217728");
+    Job job = Job.getInstance(conf, "Profit");
+    job.setJarByClass(GrossProfit.class);
+    job.setMapperClass(mapperclass.class);
+    //job.setCombinerClass(reduceclass.class);
+    job.setReducerClass(reduceclass.class);
+    job.setNumReduceTasks(1);
+    //job.setMapOutputKeyClass(Text.class);
+    //job.setMapOutputValueClass(Text.class);
+    job.setOutputKeyClass(Text.class);
+    job.setOutputValueClass(Text.class);
+    FileInputFormat.addInputPath(job, new Path(args[0]));
+    FileOutputFormat.setOutputPath(job, new Path(args[1]));
+    System.exit(job.waitForCompletion(true) ? 0 : 1);
+  }
+}
+

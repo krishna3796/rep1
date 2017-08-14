@@ -1,0 +1,73 @@
+import java.io.IOException;
+
+	import org.apache.hadoop.conf.Configuration;
+	import org.apache.hadoop.fs.Path;
+	import org.apache.hadoop.io.LongWritable;
+	import org.apache.hadoop.io.FloatWritable;
+	import org.apache.hadoop.io.Text;
+	import org.apache.hadoop.mapreduce.Job;
+	import org.apache.hadoop.mapreduce.Mapper;
+	import org.apache.hadoop.mapreduce.Reducer;
+	import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+	import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+	
+public class ProfitPercent {
+	public static class mapperclass extends Mapper<LongWritable,Text,Text,Text>
+	{
+		public void map(LongWritable key,Text val,Context context) throws IOException, InterruptedException
+		{
+			try{
+				
+			String str[]=val.toString().split(";");
+			String outval=str[7]+","+str[8];
+			String outkey=new String(str[5]);
+			
+			context.write(new Text(outkey),new Text(outval));}
+			catch(Exception e)
+			{
+				System.out.println(e);
+			}
+		}
+	}
+	public static class reduceclass extends Reducer<Text,Text,Text,FloatWritable>
+	{
+		public void reduce(Text key,Iterable<Text> val,Context context) throws IOException, InterruptedException
+		{
+			FloatWritable ans=new FloatWritable();
+			float per=0;
+			float cost=0;
+			float result=0;
+			for(Text i:val)
+			{
+				String[] str=i.toString().split(",");
+				
+				 cost=Float.parseFloat(str[0]);
+				float sales=Float.parseFloat(str[1]);
+				result=sales-cost;
+			}
+			per=(result/cost)*100;
+			ans.set(per);
+			context.write(key,ans);
+		}
+	}
+	public static void main(String[] args) throws Exception {
+	    Configuration conf = new Configuration();
+	    //conf.set("name", "value")
+	    //conf.set("mapreduce.input.fileinputformat.split.minsize", "134217728");
+	    Job job = Job.getInstance(conf, "Profit");
+	    job.setJarByClass(ProfitPercent.class);
+	    job.setMapperClass(mapperclass.class);
+	    //job.setCombinerClass(reduceclass.class);
+	    job.setReducerClass(reduceclass.class);
+	    job.setNumReduceTasks(1);
+	    job.setMapOutputKeyClass(Text.class);
+	    job.setMapOutputValueClass(Text.class);
+	    job.setOutputKeyClass(Text.class);
+	    job.setOutputValueClass(FloatWritable.class);
+	    FileInputFormat.addInputPath(job, new Path(args[0]));
+	    FileOutputFormat.setOutputPath(job, new Path(args[1]));
+	    System.exit(job.waitForCompletion(true) ? 0 : 1);
+	  }
+	}
+
+
