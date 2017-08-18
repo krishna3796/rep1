@@ -1,0 +1,67 @@
+import java.io.*;
+//import org.apache.hadoop.io.FloatWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.conf.*;
+import org.apache.hadoop.fs.*;
+import org.apache.hadoop.mapreduce.lib.input.*;
+import org.apache.hadoop.mapreduce.lib.output.*;
+
+public class AverageOfCities {
+public static class mapperclass extends Mapper<LongWritable,Text,Text,LongWritable>
+{
+	public void map(LongWritable key,Text value,Context context)
+	{
+		Text key1=new Text();
+		LongWritable val1=new LongWritable();
+		try
+		{
+			String[] arr=value.toString().split(",");
+			key1.set(arr[3]);
+			val1.set(Long.parseLong(arr[2]));
+			context.write(key1,val1);
+	    }
+		catch(Exception e)
+		{
+			System.out.println(e);
+		}
+}
+}
+public static class reduceclass extends Reducer<Text,LongWritable,Text,LongWritable>
+{
+public void reduce(Text key,Iterable<LongWritable> value,Context context) throws IOException, InterruptedException
+{
+	long numberofinputs=0;
+	long total=0;
+	
+	for(LongWritable v:value)
+	{
+		total+=v.get();
+		numberofinputs+=1;
+	}
+	long outval=total/numberofinputs;
+	context.write(key,new LongWritable(outval));
+	
+}
+
+
+}
+public static void main(String[] args) throws Exception {
+    Configuration conf = new Configuration();
+    Job job = Job.getInstance(conf, "Average of Cities");
+    job.setJarByClass(AverageOfCities.class);
+    job.setMapperClass(mapperclass.class);
+    job.setCombinerClass(reduceclass.class);
+    job.setReducerClass(reduceclass.class);
+    job.setNumReduceTasks(1);
+    job.setOutputKeyClass(Text.class);
+    job.setOutputValueClass(LongWritable.class);
+    FileInputFormat.addInputPath(job, new Path(args[0]));
+    FileOutputFormat.setOutputPath(job, new Path(args[1]));
+    System.exit(job.waitForCompletion(true) ? 0 : 1);
+  }
+}
+
