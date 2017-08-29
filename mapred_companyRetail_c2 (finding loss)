@@ -1,0 +1,150 @@
+import java.io.*;
+import org.apache.hadoop.io.*;
+import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.conf.*;
+import org.apache.hadoop.fs.*;
+import org.apache.hadoop.mapreduce.lib.input.*;
+import org.apache.hadoop.mapreduce.lib.output.*;
+//import org.apache.hadoop.util.*;
+
+public class ViableProducts
+{
+   //Map class
+   public static class MapClass extends Mapper<LongWritable,Text,LongWritable,Text>
+   {
+      public void map(LongWritable key, Text value, Context context)
+      {
+         try{
+            String[] str = value.toString().split(";");
+            long prodidkey=Long.parseLong(str[5]);
+            long prodval=Long.parseLong(str[4]);
+            long sales=Long.parseLong(str[8]);
+            long cost=Long.parseLong(str[7]);
+            long total=cost-sales;
+            String agegroup=str[2];
+            if(total>0)
+            {
+            	String val=prodval+","+agegroup+","+total;
+            	context.write(new LongWritable(prodidkey),new Text(val));
+            }
+            
+         }
+         catch(Exception e)
+         {
+            System.out.println(e.getMessage());
+         }
+      }
+   }
+   
+   //Reducer class
+	
+   public static class ReduceClass extends Reducer<LongWritable,Text,LongWritable,Text>
+   {
+      public void reduce(LongWritable key, Iterable <Text> values, Context context) throws IOException, InterruptedException
+      {
+    	 
+    	  for(Text t:values)
+    	  {
+    		  context.write(key,t);
+       
+    	  }
+    	  
+       
+			
+         
+      }
+   }
+   
+   //Partitioner class
+	
+   public static class CaderPartitioner extends
+   Partitioner <LongWritable,Text>
+   {
+      @Override
+      public int getPartition(LongWritable key,Text value, int numReduceTasks)
+      {
+         String[] str = value.toString().split(",");
+         String agegroup = str[1];
+      //   int prodid=Integer.parseInt(str[1]);
+       //  int qty=Integer.parseInt(str[2]);
+         
+         if(agegroup.contains("A"))
+         {
+            return 0;
+         }
+         else
+        	 if(agegroup.contains("B"))
+         {
+            return 1;
+         }
+        	 else if(agegroup.contains("C"))
+        	 {
+        		 return 2;
+        	 }
+        	 else if(agegroup.contains("D"))
+        	 {
+        		 return 3;
+        	 }
+        	 else if(agegroup.contains("E"))
+        	 {
+        		 return 4;
+        	 }
+        	 else if(agegroup.contains("F"))
+        	 {
+        		 return 5;
+        	 }
+        	 else if(agegroup.contains("G"))
+        	 {
+        		 return 6;
+        	 }
+        	 else if(agegroup.contains("H"))
+        	 {
+        		 return 7;
+        	 }
+        	 else if(agegroup.contains("I"))
+        	 {
+        		 return 8;
+        	 }
+        	 else if(agegroup.contains("J"))
+        	 {
+        		 return 9;
+        	 }
+        	 else 
+        	 {
+        		 return 10;
+        	 }
+      }
+   }
+   
+   
+   public static void main(String ar[]) throws Exception
+   {
+	   Configuration conf = new Configuration();
+		  Job job = Job.getInstance(conf);
+		  job.setJarByClass(ViableProducts.class);
+		  job.setJobName("viable products ");
+	  //    FileInputFormat.setInputPaths(job, new Path(arg[0]));
+	   //FileOutputFormat.setOutputPath(job,new Path(arg[1]));
+			
+	      job.setMapperClass(MapClass.class);
+			
+	      job.setMapOutputKeyClass(LongWritable.class);
+	      job.setMapOutputValueClass(Text.class);
+	      
+	      //set partitioner statement
+			
+	      job.setPartitionerClass(CaderPartitioner.class);
+	      job.setReducerClass(ReduceClass.class);
+	      job.setNumReduceTasks(11);
+	      job.setInputFormatClass(TextInputFormat.class);
+			
+	      job.setOutputFormatClass(TextOutputFormat.class);
+	      job.setOutputKeyClass(LongWritable.class);
+	      job.setOutputValueClass(Text.class);
+	      FileInputFormat.addInputPath(job, new Path(ar[0]));
+	      FileOutputFormat.setOutputPath(job, new Path(ar[1]));
+	      System.exit(job.waitForCompletion(true)? 0 : 1);
+     // ToolRunner.run(new Configuration(), new MyPartitioner(),ar);
+      System.exit(0);
+   }
+}
