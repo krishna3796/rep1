@@ -1,0 +1,158 @@
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URI;
+import java.util.HashMap;
+import java.util.StringTokenizer;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+//import org.apache.hadoop.io.FloatWritable;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+//import org.apache.hadoop.mapreduce.Partitioner;
+//import org.apache.hadoop.mapreduce.Reducer;
+//import org.apache.hadoop.mapreduce.Mapper.Context;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+
+
+
+public class SentimentAnalysis {
+
+public static class MyMapper extends Mapper<LongWritable,Text, Text,IntWritable> {
+	
+	String dictkey="";String dictval="";
+		HashMap<String,String> wordmap = new HashMap<>();
+		public void setup(Context context) throws IOException, InterruptedException
+		{
+			super.setup(context);
+			URI[] files = context.getCacheFiles();
+			Path p = new Path(files[0]);
+			FileSystem fs = FileSystem.get(context.getConfiguration());
+			if(p.getName().equals("AFINN.txt"))
+			{
+				BufferedReader reader = new BufferedReader(new InputStreamReader(fs.open(p)));
+				String line = reader.readLine();
+				while(line != null) {
+					String[] tokens = line.split("\t");
+					 dictkey = tokens[0];
+					 dictval = tokens[1];
+					wordmap.put(dictkey, dictval);
+					line = reader.readLine();
+				}
+				reader.close();
+			}
+		}
+		
+		protected void map(LongWritable key, Text value, Context context) throws java.io.IOException, InterruptedException 
+		{
+			int val=0;
+			String word="";
+	        StringTokenizer str=new StringTokenizer(value.toString());
+	        while(str.hasMoreTokens())
+	        {
+	        	word=str.nextToken().toLowerCase();
+	        	
+	        	if(wordmap.get(word)!=null)
+	        	{
+	        		val=Integer.parseInt(wordmap.get(word));
+	        	if(val > 0)
+	        	{
+	        		word="positive";
+
+	        	}
+	        	 if(val < 0)
+	        	{
+	        		word="negative";
+	        		val=val*-1;
+	        	}
+	        	}
+	        	else
+	        	{
+	        		word="positive";
+	        		val=0;
+	        	}
+	        	context.write(new Text(word),new IntWritable(val));
+	        	}
+	        	
+	        }
+	        
+		
+}
+public static class reduceclass extends Reducer<Text,IntWritable,NullWritable,Text>
+{
+	float total=0;
+	float poscount=0;
+	float negcount=0;
+	public void reduce(Text key,Iterable<IntWritable> value,Context context) throws IOException, InterruptedException
+	{
+		String k=key.toString();
+		for(IntWritable v:value)
+		{
+			if(k.contains("positive"))
+			{
+				poscount+=v.get();
+			}
+			if(k.contains("negative"))
+			{
+				negcount+=v.get();
+			}
+		}
+	}
+	
+	
+	   protected void cleanup(Context context) throws IOException,InterruptedException
+       {
+        total = ((poscount-negcount)/(poscount+negcount))*100;
+        if(total>0)
+        {
+        String str="Sentiment percent = "+total+"\n this is positive statement";
+        context.write(NullWritable.get(), new Text(str));
+        }
+        else
+        	if(total<0)
+        	{
+        		String str="Sentiment percent = "+total+"\n this is negative statement";
+                context.write(NullWritable.get(), new Text(str));
+        	}
+        	else
+        	{
+        		 String str="Sentiment percent = "+total+"\n this is neutral statement";
+        	        context.write(NullWritable.get(), new Text(str));
+        	}
+       }
+}
+
+public static void main(String[] args) 
+        throws IOException, ClassNotFoundException, InterruptedException {
+
+Configuration conf = new Configuration();
+conf.set("mapreduce.output.textoutputformat.separator", ",");
+Job job = Job.getInstance(conf);
+job.setJarByClass(SentimentAnalysis.class);
+job.setJobName("Sent analysis");
+job.setMapperClass(MyMapper.class);
+//job.setPartitionerClass(MyPartitioner.class);
+job.setReducerClass(reduceclass.class);
+job.addCacheFile(new Path(args[1]).toUri());
+job.setNumReduceTasks(1);
+job.setMapOutputKeyClass(Text.class);
+job.setMapOutputValueClass(IntWritable.class);
+job.setOutputKeyClass(NullWritable.class);
+job.setOutputValueClass(Text.class);
+
+FileInputFormat.addInputPath(job, new Path(args[0]));
+//FileSystem.get(conf).delete(new Path(args[2]),true);
+FileOutputFormat.setOutputPath(job, new Path(args[2]));
+System.exit(job.waitForCompletion(true) ? 0 : 1);
+}
+	}
+
