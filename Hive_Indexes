@@ -1,0 +1,32 @@
+S.create an index on customer (earlier created) table on profession column
+--------------------------------------------------------------------------
+use retail;
+
+*** deferred rebuild will create an empty index
+create index prof_index on table customer(profession) as 'compact' with deferred rebuild;
+
+**** alter index will actually create the index
+alter index prof_index on customer rebuild;
+
+******list all the indexes on the table
+show indexes on customer;
+
+*****schema of the index
+describe retail__customer_prof_index__;
+
+select * from retail__customer_prof_index__ where profession = "Pilot;
+
+****Time taken without index
+-----------------------------
+select profession, count(*) from customer group by profession;
+
+list of all the profession and the count of customers
+
+Time taken: 45.003 seconds, Fetched: 51 row(s)
+
+
+****Time taken with index
+--------------------------
+select profession, SIZE(`_offsets`) from retail__customer_prof_index__;
+
+list of all the profession and the count of customers

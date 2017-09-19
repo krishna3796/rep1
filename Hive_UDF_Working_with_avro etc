@@ -1,0 +1,164 @@
+V. User Define Functions
+-------------------------
+create table testing(id string,unixtime string)
+row format delimited
+fields terminated by ',';
+
+load data local inpath '/home/hduser/counter.txt' into table testing;
+
+hive> select * from testing;
+
+****OK
+****one		1386023259550
+****two		1389523259550
+****three	1389523259550
+****four	1389523259550
+
+******* adding the jar in the hive script *********
+add jar /home/hduser/udfhive.jar;
+
+****** to display the jar files in hive *********
+list jars;
+
+******define user function ************
+create temporary function userdate as 'udfhive.UnixtimeToDate';
+
+
+****Then use function 'userdate' in sql command
+
+select id, userdate(unixtime) from testing;
+
+
+W. Loading Avro type-data (flume) in Hive table
+--------------------------------------------
+CREATE TABLE tweets
+  ROW FORMAT SERDE
+     'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
+  STORED AS INPUTFORMAT
+     'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
+  OUTPUTFORMAT
+     'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
+  TBLPROPERTIES ('avro.schema.url'='file:/home/hduser/intel.avsc') ;
+
+LOAD DATA Local INPATH '/home/hduser/FlumeData.1504749217753' OVERWRITE INTO TABLE tweets;
+
+
+
+CREATE TABLE tweets2 (
+id string, 
+user_friends_count int, 
+user_location string,
+user_description string,
+user_statuses_count int,
+user_followers_count int,
+user_name string,
+user_screen_name string,
+created_at string,
+text string,
+retweet_count bigint,
+retweeted boolean,
+in_reply_to_user_id bigint,
+source string,
+in_reply_to_status_id bigint,
+media_url_https string,
+expanded_url string)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '/t' 
+STORED AS TEXTFILE;
+
+INSERT OVERWRITE TABLE tweets2 SELECT * FROM tweets;
+
+
+X. Convert Text file to Avro Format
+-----------------------------------
+create database college;
+use college;
+
+students.csv
+------------
+Amit,Maths,91
+Amit,Physics,48
+Amit,Chemistry,66
+Sanjay,Maths,96
+Sanjay,Physics,64
+Sanjay,Chemistry,73
+
+Create a Hive table stored as textfile
+
+CREATE TABLE csv_table (
+student_name string,
+subject string,
+marks INT)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' 
+STORED AS TEXTFILE;
+
+--2. Load csv_table with student.csv data
+LOAD DATA LOCAL INPATH "/home/hduser/students.csv" OVERWRITE INTO TABLE csv_table;
+
+--3. Create another Hive table using AvroSerDe
+CREATE TABLE avro_table
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
+STORED AS INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
+OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
+TBLPROPERTIES (
+    'avro.schema.literal'='{
+      "namespace": "abc",
+      "name": "student_marks",
+      "type": "record",
+      "fields": [ { "name":"student_name","type":"string"}, { "name":"subject","type":"string"}, { "name":"marks","type":"int"}]
+    }');
+
+--4. Load avro_table with data from csv_tabl
+INSERT OVERWRITE TABLE avro_table SELECT student_name, subject, marks FROM csv_table;
+
+--Now you can get data in Avro format from Hive warehouse folder. To dump this file to local file system use below command:
+
+ hadoop fs -cat /user/hive/warehouse/college.db/avro_table/* > student.avro
+
+---5 Create and Load data in ORC format
+
+CREATE TABLE orc_table (
+student_name string,
+subject string,
+marks INT)
+STORED AS ORC;
+
+INSERT OVERWRITE TABLE orc_table SELECT student_name, subject, marks FROM csv_table;
+
+
+6. Create a sequence File format and load data from another table
+------------------------------------------------------------------
+CREATE TABLE seq_table (
+student_name string,
+subject string,
+marks INT)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' 
+STORED AS SEQUENCEFILE;
+
+INSERT OVERWRITE TABLE seq_table SELECT student_name, subject, marks FROM csv_table;
+
+
+
+
+--If you want to get json data from this avro file you can use avro tools command:
+-- jar file is not available
+--java -jar avro-tools-1.7.5.jar tojson student.avro > student.json
+
+
+
+analysis of data from mapreduce output
+-------------------------------------
+create external table margin(prodno string, qty int, profit bigint, margin_pc double)
+row format delimited
+fields terminated by ','
+stored as textfile
+location '/retail/margin_data';
+
+
+Y.hive allows to read  data from sub dir
+----------------------------------------
+set hive.mapred.supports.subdirectories=true;
+set mapred.input.dir.recursive=true;
+
+Z. hive allows to run select statement without mapreduce
+---------------------------------------------------------
+set hive.fetch.task.conversion=more;

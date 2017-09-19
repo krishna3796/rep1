@@ -1,0 +1,25 @@
+L. to execute script from command prompt
+--------------------------------------
+$ hive -f filename.sql
+$ hive -f professioncount.sql
+
+M. to execute command from command prompt
+--------------------------------------
+$ hive -e "select * from retail.customer"
+
+
+N1. how do i know i am in which database currently
+--------------------------------------------------
+set hive.cli.print.current.db=true;
+
+N2. how do i print my headers of my table
+-------------------------------------
+set hive.cli.print.header=true;
+
+N3. how do i set my default file format
+---------------------------------------
+set hive.default.fileformat=textfile;
+
+O.run hive query from linux terminal and copy the result to your own file
+-----------------------------------------------------------------------
+$ hive -e "select * from retail.customer" > /home/hduser/retail_output.txt

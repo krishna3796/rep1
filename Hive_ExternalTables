@@ -1,0 +1,39 @@
+J.create external tables
+----------------------
+***first load the data set on hadoop
+
+$ hadoop fs -mkdir /user/training
+$ hadoop fs -put /home/hduser/custs /user/training
+
+create external table customer(custno string, firstname string, lastname string, age int,profession string)
+row format delimited
+fields terminated by ','
+stored as textfile
+location '/user/training';
+
+select * from customer;
+
+describe extended customer;
+
+
+K 1. Storing output in local file
+------------------------------
+INSERT OVERWRITE LOCAL DIRECTORY '/home/hduser/retail/hive/custcount' row format delimited fields terminated by ',' 
+select profession, count(*) as headcount from customer group by profession order by headcount desc limit 10;
+
+
+INSERT OVERWRITE LOCAL DIRECTORY '/home/hduser/mindtree/topten' row format delimited fields terminated by ',' 
+select a.custno, b.firstname,b.lastname, b.age, b.profession, round(sum(a.amount),2) as amt from txnrecords a, customer b where a.custno=b.custno group by a.custno, b.firstname, b.lastname, b.age, b.profession order by amt desc limit 10;
+
+
+K 2. Storing output in hdfs file system
+-------------------------------------------
+INSERT OVERWRITE DIRECTORY '/retail/custcount' row format delimited fields terminated by ',' 
+select profession, count(*) from customer group by profession;
+
+
+INSERT OVERWRITE DIRECTORY '/retail/topten' row format delimited fields terminated by ',' 
+select a.custno, b.firstname,b.lastname, b.age, b.profession, sum(a.amount) as amt from txnrecords a, customer b where a.custno=b.custno group by a.custno, b.firstname, b.lastname, b.age, b.profession order by amt desc limit 10;
+
+INSERT OVERWRITE DIRECTORY '/hanoi/topten' row format delimited fields terminated by ',' 
+select a.custno, b.firstname,b.lastname, b.age, b.profession, sum(a.amount) as amt from txnrecords a, customer b where a.custno=b.custno group by a.custno, b.firstname, b.lastname, b.age, b.profession order by amt desc limit 10;
